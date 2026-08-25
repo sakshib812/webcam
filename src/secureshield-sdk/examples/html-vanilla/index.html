@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SecureShield Web SDK — Endpoint Ingest Tester</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Ambient background glow elements -->
+  <div class="glow-orb orb-1"></div>
+  <div class="glow-orb orb-2"></div>
+  <div class="glow-orb orb-3"></div>
+
+  <div class="app-container">
+    <!-- Top Header -->
+    <header class="top-nav">
+      <div class="brand-group">
+        <div class="brand-badge">
+          <svg class="shield-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="m9 12 2 2 4-4"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <div class="title-row">
+            <h1>SecureShield Web SDK</h1>
+            <span class="version-tag">v1.0.0</span>
+            <span class="live-pill"><span class="pulse-dot"></span> ENGINE READY</span>
+          </div>
+          <p class="brand-subtitle">Telemetry Ingestion & Runtime Threat Evaluation Studio</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <a href="download-exe" download="SecureShield-Web-Tester.exe" class="download-exe-btn" id="downloadExeBtn" title="Download Standalone Windows Executable (.exe)">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span>Download .exe</span>
+        </a>
+        <button class="share-btn" id="shareDeviceBtn" title="Share with other devices on your local network/Wi-Fi">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="18" cy="5" r="3"></circle>
+            <circle cx="6" cy="12" r="3"></circle>
+            <circle cx="18" cy="19" r="3"></circle>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+          </svg>
+          <span id="shareBtnText">Share App</span>
+        </button>
+        <button class="icon-btn" id="refreshPageBtn" title="Reset & Re-initialize Engine">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Network Share Banner (Hidden by default, toggles on click) -->
+    <div class="network-share-banner" id="networkShareBanner" style="display: none;">
+      <div class="share-banner-content">
+        <div class="share-icon-wrap">🌐</div>
+        <div class="share-text-wrap">
+          <div class="share-title">Open on Other Devices (Phone / Laptop / Other Browser)</div>
+          <div class="share-desc">Anyone connected to the same Wi-Fi / Local Network can open this URL in Chrome, Safari, or Firefox:</div>
+          <div class="share-url-box">
+            <code id="networkUrlDisplay">http://localhost:8420</code>
+            <button class="copy-url-btn" id="copyShareUrlBtn">📋 Copy Link</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Key Metrics Ribbon -->
+    <section class="metrics-ribbon">
+      <div class="metric-card" id="metricVerdictCard">
+        <div class="metric-label">Device Security Verdict</div>
+        <div class="metric-value verdict-secure" id="verdictDisplay">INITIALIZING</div>
+        <div class="metric-sub" id="verdictSub">Waiting for scan trigger...</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-label">Device Trust Score</div>
+        <div class="metric-value-group">
+          <span class="metric-value text-gradient-cyan" id="trustScoreDisplay">--</span>
+          <span class="metric-unit">/100</span>
+        </div>
+        <div class="score-bar-track">
+          <div class="score-bar-fill" id="scoreBarFill" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-label">Detectors Evaluated</div>
+        <div class="metric-value text-gradient-purple" id="detectorsCountDisplay">0 / 60+</div>
+        <div class="metric-sub"><span id="detectorsPassedCount">0</span> passed &bull; <span id="detectorsFailedCount">0</span> flagged</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-label">Telemetry Ingest Status</div>
+        <div class="metric-value text-muted" id="ingestStatusDisplay">IDLE</div>
+        <div class="metric-sub" id="ingestLatencyDisplay">Target: Ready for transmission</div>
+      </div>
+    </section>
+
+    <!-- Main Grid -->
+    <main class="main-grid">
+      <!-- Left Column: Single Configuration Field & Action Trigger Controls -->
+      <section class="panel config-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+            <h2>Data Ingest API Endpoint</h2>
+          </div>
+          <span class="badge-single-field">Only Config Field</span>
+        </div>
+
+        <div class="panel-body">
+          <p class="field-help-text">
+            Specify the backend SecureShield Telemetry Ingestion endpoint. The Web SDK will transmit full 60+ detector audits and receive live threat remediation actions.
+          </p>
+
+          <!-- THE SINGLE INPUT FIELD -->
+          <div class="single-input-group">
+            <label for="dataIngestApiInput" class="input-label">
+              <span>Data Ingest API URL</span>
+              <span class="url-protocol-tag" id="protocolBadge">HTTP / REST</span>
+            </label>
+            <div class="input-wrapper">
+              <span class="input-prefix-icon">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="2" y1="12" x2="22" y2="12"></line>
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                </svg>
+              </span>
+              <input 
+                type="text" 
+                id="dataIngestApiInput" 
+                class="cyber-input" 
+                placeholder="http://localhost:4000/api/v1/telemetry/ingest" 
+                value="http://localhost:4000/api/v1/telemetry/ingest"
+                autocomplete="off"
+                spellcheck="false"
+              />
+              <button class="clear-btn" id="resetEndpointBtn" title="Reset to Default Portal Endpoint">
+                ↺ Default
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick Endpoint Presets -->
+          <div class="presets-row">
+            <span class="presets-label">Presets:</span>
+            <button class="preset-chip active" data-url="http://localhost:4000/api/v1/telemetry/ingest">Local Portal (:4000)</button>
+            <button class="preset-chip" data-url="http://127.0.0.1:4000/api/v1/telemetry/ingest">127.0.0.1 (:4000)</button>
+            <button class="preset-chip" data-url="http://localhost:5000/api/v1/telemetry/ingest">Dev Server (:5000)</button>
+            <button class="preset-chip" data-url="https://api.secureshield.io/api/v1/telemetry/ingest">Cloud Gateway</button>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="actions-container">
+            <button class="btn btn-primary" id="runScanAndIngestBtn">
+              <span class="btn-icon">⚡</span>
+              <span class="btn-text">
+                <strong>Run Security Scan & Ingest</strong>
+                <small>Executes all detectors & transmits payload</small>
+              </span>
+            </button>
+
+            <div class="button-row">
+              <button class="btn btn-warning" id="triggerThreatSimBtn">
+                <span class="btn-icon">⚠️</span>
+                <span class="btn-text">
+                  <strong>Simulate Threat & Ingest</strong>
+                  <small>Hooks prototype & triggers alerts</small>
+                </span>
+              </button>
+
+              <button class="btn btn-outline" id="autoIngestToggleBtn">
+                <span class="btn-icon">🔄</span>
+                <span class="btn-text">
+                  <strong id="autoIngestStatusText">Auto-Ingest: OFF</strong>
+                  <small>10s Heartbeat stream</small>
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Server Response Summary Card -->
+          <div class="response-card" id="serverResponseCard">
+            <div class="response-card-header">
+              <span class="response-title">Latest Ingest API Response</span>
+              <span class="status-chip chip-idle" id="httpStatusChip">PENDING TRIGGER</span>
+            </div>
+            <div class="response-grid">
+              <div class="resp-item">
+                <span class="resp-lbl">Decision Action:</span>
+                <span class="resp-val" id="respDecisionAction">--</span>
+              </div>
+              <div class="resp-item">
+                <span class="resp-lbl">Roundtrip Latency:</span>
+                <span class="resp-val" id="respLatency">-- ms</span>
+              </div>
+              <div class="resp-item full-width">
+                <span class="resp-lbl">Server Message:</span>
+                <span class="resp-val text-muted" id="respMessage">Click "Run Security Scan & Ingest" above</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Column: Live Telemetry Payload & Detector Matrix -->
+      <section class="panel results-panel">
+        <div class="panel-header">
+          <div class="tabs-group">
+            <button class="tab-btn active" data-tab="detectorsTab">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              Detector Matrix (<span id="detectorTabBadge">0</span>)
+            </button>
+            <button class="tab-btn" data-tab="payloadTab">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+              Ingest JSON Payload
+            </button>
+            <button class="tab-btn" data-tab="responseTab">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+              Server Raw Response
+            </button>
+          </div>
+          <button class="copy-btn" id="copyTabContentBtn" title="Copy Current View to Clipboard">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            Copy
+          </button>
+        </div>
+
+        <div class="panel-body tab-content-wrapper">
+          <!-- Detectors Tab Content -->
+          <div class="tab-pane active" id="detectorsTab">
+            <div class="detector-filter-row">
+              <input type="text" id="detectorSearchInput" class="filter-input" placeholder="Search detectors (e.g. headless, canvas, devtools, webgl)..." />
+              <div class="filter-pills">
+                <button class="filter-pill active" data-filter="all">All</button>
+                <button class="filter-pill" data-filter="flagged">Flagged</button>
+                <button class="filter-pill" data-filter="passed">Passed</button>
+              </div>
+            </div>
+            <div class="detectors-grid" id="detectorsList">
+              <div class="loading-state">
+                <div class="spinner"></div>
+                <p>Initializing SecureShield engine and evaluating detectors...</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Payload Tab Content -->
+          <div class="tab-pane" id="payloadTab">
+            <pre class="code-viewer"><code id="rawPayloadCode">// Ingest payload will appear here after scan...</code></pre>
+          </div>
+
+          <!-- Response Tab Content -->
+          <div class="tab-pane" id="responseTab">
+            <pre class="code-viewer"><code id="rawResponseCode">// Server response JSON will appear here...</code></pre>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div class="footer-left">
+        <span class="secure-dot"></span>
+        <span>SecureShield Web Engine: Plugged & Active</span>
+        <span class="separator">&bull;</span>
+        <span id="deviceHashDisplay">Device: dev_web_evaluating</span>
+      </div>
+      <div class="footer-right">
+        <span>Windows Executable Export Edition</span>
+        <span class="separator">&bull;</span>
+        <span>Target: <code id="footerTargetUrl">http://localhost:4000/api/v1/telemetry/ingest</code></span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Load Bundled SecureShield Web SDK -->
+  <script src="secureshield-web.global.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -69,6 +69,9 @@
       <div class="badge-row">
         <span class="sparkle-chip">✨ Interactive Demo</span>
         <span class="lang-chip">{{ currentLang().flag }} {{ currentLang().name }}</span>
+        <span class="sparkle-chip" *ngIf="shieldService.isShieldActive()" style="background: rgba(0,255,136,0.15); border-color: rgba(0,255,136,0.3); color: #00ff88;">
+          🛡️ SecureShield Active
+        </span>
       </div>
 
       <div class="greeting-display">

@@ -1,6 +1,7 @@
-import { Component, signal, computed, OnInit, OnDestroy } from '@angular/core';
+import { Component, signal, computed, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { SecureShieldService } from './services/secureshield.service';
 
 export interface LanguageOption {
   id: string;
@@ -17,6 +18,7 @@ export interface LanguageOption {
   styleUrl: './app.css',
 })
 export class App implements OnInit, OnDestroy {
+  readonly shieldService = inject(SecureShieldService);
   // Signals for reactive application state
   readonly userName = signal<string>('World');
   readonly selectedLangId = signal<string>('en');
